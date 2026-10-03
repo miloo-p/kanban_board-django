@@ -37,9 +37,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.staticfiles',
+
+    'rest_framework.apps.RestFrameworkConfig',
+    'rest_framework.authtoken.apps.AuthTokenConfig',
+    'corsheaders.apps.CorsHeadersAppConfig',
+
+    'kanban_app.apps.AchievementsAppConfig',
+    'auth_app.apps.AuthAppConfig',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,6 +56,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:4200',  # Angular
+    'http://127.0.0.1:4200',
+    'http://localhost:5500',  # VS Code Live Server
+    'http://127.0.0.1:5500',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -124,4 +140,14 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        #   'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.allowAny',
+        #   'rest_framework.permissions.IsAuthenticated',
+    ],
 }
