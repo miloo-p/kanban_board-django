@@ -37,13 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.staticfiles',
 
-    'rest_framework.apps.RestFrameworkConfig',
-    'rest_framework.authtoken.apps.AuthTokenConfig',
-    'corsheaders.apps.CorsHeadersAppConfig',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
 
-    'kanban_app.apps.AchievementsAppConfig',
+    'kanban_app.apps.KanbanAppConfig',
     'auth_app.apps.AuthAppConfig',
 ]
 
