@@ -3,12 +3,6 @@ from django.contrib.auth.models import User
 from auth_app.models import UserProfile
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ['user', 'fullname']
-
-
 class RegistrationSerializer(serializers.ModelSerializer):
     fullname = serializers.CharField(write_only=True)
     repeated_password = serializers.CharField(write_only=True)
