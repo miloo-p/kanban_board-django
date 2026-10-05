@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 """
 Django settings for core project.
 
@@ -20,7 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5*ikry9xoa7-a1yvc&zq3+imi!=h#1f)l%7^=u9w3dw5np$-my'
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
