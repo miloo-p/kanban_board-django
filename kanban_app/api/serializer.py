@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from kanban_app.models import Board, Task, Comment
+from kanban_app.models import Board, Task, Comment, User
 
 
 class BoardSerializer(serializers.ModelSerializer):
@@ -30,3 +30,18 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def get_tasks_high_prio_count(self, obj):
         return obj.tasks.filter(priority='high').count()
+
+
+class EmailCheckSerializer(serializers.ModelSerializer):
+
+    fullname = serializers.CharField(
+        source='profile.fullname', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'fullname']
+
+
+class EmailValidatorSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
