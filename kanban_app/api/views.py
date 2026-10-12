@@ -1,28 +1,21 @@
 from django.contrib.auth.models import User
-from django.db.models import Count, Q
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ..models import Board
-from .serializer import BoardSerializer, EmailCheckSerializer, EmailValidatorSerializer
-
-
-def boards_with_counts():
-    return Board.objects.annotate(
-        member_count=Count("members", distinct=True),
-        ticket_count=Count("tasks", distinct=True),
-        tasks_to_do_count=Count(
-            "tasks",
-            filter=Q(tasks__status="to-do"),
-            distinct=True,
-        ),
-        tasks_high_prio_count=Count(
-            "tasks",
-            filter=Q(tasks__priority="high"),
-            distinct=True,
-        ),
-    )
+from .permissions import IsOwnerOrMember
+from .querysets import boards_with_counts
+from .serializer import (
+    BoardDetailSerializer,
+    BoardSerializer,
+    BoardUpdateSerializer,
+    EmailValidatorSerializer,
+    UserSerializer,
+)
 
 
 class BoardView(APIView):
@@ -70,6 +63,43 @@ class EmailCheckView(APIView):
             # das ist der Ort wo definiert wird aus ausgegeben wird wenn die mail nicht existiert
             return Response(error_data, status=status.HTTP_404_NOT_FOUND)
         # der serializer bekommt den kompletten User und baut user für den Response (hier: id, email, fullname)
-        serializer = EmailCheckSerializer(user)
+        serializer = UserSerializer(user)
         # Mail wurde ja gefunden, und wird hier korrekt ausgegeben wie es der response im endpunkt verlangt
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class BoardDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsOwnerOrMember]
+
+    def get(self, request, pk):
+        """
+        Einzelnes Board, bei denen der User Owner oder Member ist.
+        """
+        board = get_object_or_404(Board, pk=pk)
+        self.check_object_permissions(request, board)
+        serializer = BoardDetailSerializer(board)
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        """
+        Löscht einzelnes Board, bei denen der User Owner ist.
+        """
+        board = get_object_or_404(Board, pk=pk)
+        self.check_object_permissions(request, board)
+        if request.user != board.owner:
+            return Response(
+                {"error": "Nur der Owner darf das Board löschen."}, status=status.HTTP_403_FORBIDDEN
+            )
+        board.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def patch(self, request, pk):
+        """
+        Updated einzelnes Board, bei denen der User Owner oder Member ist.
+        """
+        board = get_object_or_404(Board, pk=pk)
+        self.check_object_permissions(request, board)
+        serializer = BoardUpdateSerializer(board, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
