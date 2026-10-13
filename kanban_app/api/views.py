@@ -112,3 +112,19 @@ class ReviewingListView(APIView):
         tasks = tasks_with_counts().filter(reviewer=request.user)
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
+
+
+class TaskView(APIView):
+    permission_classes = [IsAuthenticated, IsOwnerOrMember]
+
+    def post(self, request):
+        """
+        View for creating a Task
+        """
+        board = get_object_or_404(Board, pk=request.data.get("board"))
+        self.check_object_permissions(request, board)
+        serializer = TaskSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        task = serializer.save(creator=request.user)
+        task = tasks_with_counts().get(pk=task.pk)
+        return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)

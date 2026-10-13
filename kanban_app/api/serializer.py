@@ -91,6 +91,25 @@ class TaskSerializer(TaskCurrentBoardSerializer):
             "comments_count",
         ]
 
+    def validate(self, data):
+        board = data.get("board")
+        assignee = data.get("assignee")
+        reviewer = data.get("reviewer")
+
+        if assignee and not (
+            board.owner == assignee or board.members.filter(pk=assignee.pk).exists()
+        ):
+            raise serializers.ValidationError(
+                {"assignee_id": "Assignee ist kein Mitglied vom Board"}
+            )
+        if reviewer and not (
+            board.owner == reviewer or board.members.filter(pk=reviewer.pk).exists()
+        ):
+            raise serializers.ValidationError(
+                {"reviewer_id": "Reviewer ist kein Mitglied vom Board"}
+            )
+        return data
+
 
 class BoardDetailSerializer(serializers.ModelSerializer):
     members = UserSerializer(many=True, read_only=True)
