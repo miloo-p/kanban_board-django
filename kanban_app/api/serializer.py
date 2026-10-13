@@ -59,6 +59,22 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
 
 
+class AssignedTaskSerializer(TaskSerializer):
+    class Meta(TaskSerializer.Meta):
+        fields = [
+            "id",
+            "board",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+            "comments_count",
+        ]
+
+
 class BoardDetailSerializer(serializers.ModelSerializer):
     members = UserSerializer(many=True, read_only=True)
     tasks = serializers.SerializerMethodField()
