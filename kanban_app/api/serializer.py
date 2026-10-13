@@ -60,6 +60,21 @@ class TaskCurrentBoardSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(TaskCurrentBoardSerializer):
+    assignee_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="assignee",
+        write_only=True,
+        allow_null=True,
+        required=False,
+    )
+    reviewer_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source="reviewer",
+        write_only=True,
+        allow_null=True,
+        required=False,
+    )
+
     class Meta(TaskCurrentBoardSerializer.Meta):
         fields = [
             "id",
@@ -69,7 +84,9 @@ class TaskSerializer(TaskCurrentBoardSerializer):
             "status",
             "priority",
             "assignee",
+            "assignee_id",
             "reviewer",
+            "reviewer_id",
             "due_date",
             "comments_count",
         ]
