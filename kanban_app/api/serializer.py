@@ -39,7 +39,7 @@ class EmailValidatorSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class TaskCurrentBoardSerializer(serializers.ModelSerializer):
     assignee = UserSerializer(read_only=True)
     reviewer = UserSerializer(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
@@ -59,8 +59,8 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
 
 
-class AssignedTaskSerializer(TaskSerializer):
-    class Meta(TaskSerializer.Meta):
+class TaskSerializer(TaskCurrentBoardSerializer):
+    class Meta(TaskCurrentBoardSerializer.Meta):
         fields = [
             "id",
             "board",
@@ -85,7 +85,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
     def get_tasks(self, obj):
         tasks = tasks_with_counts().filter(board=obj)
-        serializer = TaskSerializer(tasks, many=True)
+        serializer = TaskCurrentBoardSerializer(tasks, many=True)
         return serializer.data
 
 

@@ -10,11 +10,11 @@ from ..models import Board
 from .permissions import IsOwnerOrMember
 from .querysets import boards_with_counts, tasks_with_counts
 from .serializer import (
-    AssignedTaskSerializer,
     BoardDetailSerializer,
     BoardSerializer,
     BoardUpdateSerializer,
     EmailValidatorSerializer,
+    TaskSerializer,
     UserSerializer,
 )
 
@@ -102,7 +102,7 @@ class AssignedToMeListView(APIView):
     def get(self, request):
 
         tasks = tasks_with_counts().filter(assignee=request.user)
-        serializer = AssignedTaskSerializer(tasks, many=True)
+        serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
 
@@ -110,5 +110,5 @@ class ReviewingListView(APIView):
     def get(self, request):
 
         tasks = tasks_with_counts().filter(reviewer=request.user)
-        serializer = AssignedTaskSerializer(tasks, many=True)
+        serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
