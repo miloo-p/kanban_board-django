@@ -104,3 +104,11 @@ class AssignedToMeListView(APIView):
         tasks = tasks_with_counts().filter(assignee=request.user)
         serializer = AssignedTaskSerializer(tasks, many=True)
         return Response(serializer.data)
+
+
+class ReviewingListView(APIView):
+    def get(self, request):
+
+        tasks = tasks_with_counts().filter(reviewer=request.user)
+        serializer = AssignedTaskSerializer(tasks, many=True)
+        return Response(serializer.data)
