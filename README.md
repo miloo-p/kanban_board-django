@@ -13,7 +13,7 @@ cd kanban_board-django
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
 
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 python -c "from django.core.management.utils import get_random_secret_key as k; open('.env', 'w').write('SECRET_KEY=' + chr(39) + k() + chr(39) + chr(10))"
 
