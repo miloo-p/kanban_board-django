@@ -127,7 +127,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
 class BoardUpdateSerializer(serializers.ModelSerializer):
     owner_data = UserSerializer(source="owner", read_only=True)
-    members_data = UserSerializer(source="owner", many=True, read_only=True)
+    members_data = UserSerializer(source="members", many=True, read_only=True)
 
     class Meta:
         model = Board
