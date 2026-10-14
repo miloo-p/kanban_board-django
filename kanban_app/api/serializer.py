@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from kanban_app.models import Board, Task
+from kanban_app.models import Board, Comment, Task
 
 from .querysets import tasks_with_counts
 
@@ -150,3 +150,11 @@ class TaskUpdateSerializer(TaskSerializer):
             "reviewer_id",
             "due_date",
         ]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source="author.profile.fullname", read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ["id", "created_at", "author", "content"]

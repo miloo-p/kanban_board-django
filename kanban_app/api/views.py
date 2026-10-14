@@ -13,6 +13,7 @@ from .serializer import (
     BoardDetailSerializer,
     BoardSerializer,
     BoardUpdateSerializer,
+    CommentSerializer,
     EmailValidatorSerializer,
     TaskSerializer,
     TaskUpdateSerializer,
@@ -160,3 +161,24 @@ class TaskDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class TaskCommentsView(APIView):
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMemberOfTask]
+
+    def get(self, request, task_id):
+        task = get_object_or_404(Task, pk=task_id)
+        self.check_object_permissions(request, task)
+        comments = task.comments.all()
+        serializer = CommentSerializer(comments, many=True)
+
+        return Response(serializer.data)
+
+    def post(self, request, task_id):
+
+        task = get_object_or_404(Task, pk=task_id)
+        self.check_object_permissions(request, task)
+        serializer = CommentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        comment = serializer.save(task=task, author=request.user)
+        return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
