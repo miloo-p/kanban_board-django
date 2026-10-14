@@ -92,7 +92,7 @@ class TaskSerializer(TaskCurrentBoardSerializer):
         ]
 
     def validate(self, data):
-        board = data.get("board")
+        board = data.get("board", getattr(self.instance, "board", None))
         assignee = data.get("assignee")
         reviewer = data.get("reviewer")
 
@@ -133,3 +133,20 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
         model = Board
         fields = ["id", "title", "owner_data", "members_data", "members"]
         extra_kwargs = {"members": {"write_only": True}}
+
+
+class TaskUpdateSerializer(TaskSerializer):
+    class Meta(TaskSerializer.Meta):
+        model = Task
+        fields = [
+            "id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "assignee_id",
+            "reviewer",
+            "reviewer_id",
+            "due_date",
+        ]

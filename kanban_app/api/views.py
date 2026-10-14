@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ..models import Board
-from .permissions import IsOwnerOrMember
+from ..models import Board, Task
+from .permissions import IsBoardOwnerOrMember, IsBoardOwnerOrMemberOfTask
 from .querysets import boards_with_counts, tasks_with_counts
 from .serializer import (
     BoardDetailSerializer,
@@ -15,6 +15,7 @@ from .serializer import (
     BoardUpdateSerializer,
     EmailValidatorSerializer,
     TaskSerializer,
+    TaskUpdateSerializer,
     UserSerializer,
 )
 
@@ -62,7 +63,7 @@ class EmailCheckView(APIView):
 
 
 class BoardDetailView(APIView):
-    permission_classes = [IsAuthenticated, IsOwnerOrMember]
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
     def get(self, request, pk):
         """
@@ -115,7 +116,7 @@ class ReviewingListView(APIView):
 
 
 class TaskView(APIView):
-    permission_classes = [IsAuthenticated, IsOwnerOrMember]
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
     def post(self, request):
         """
@@ -128,3 +129,34 @@ class TaskView(APIView):
         task = serializer.save(creator=request.user)
         task = tasks_with_counts().get(pk=task.pk)
         return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
+
+
+class TaskDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsBoardOwnerOrMemberOfTask]
+
+    def delete(self, request, pk):
+        """
+        Löscht einzelne Task, bei denen der User Owner des Boards oder Creator der Task ist.
+        """
+        task = get_object_or_404(Task, pk=pk)
+        self.check_object_permissions(request, task)
+        if request.user != task.board.owner and request.user != task.creator:
+            return Response(
+                {
+                    "error": "Nur der Creator der Task oder der Owner des Boards darf die Task löschen."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def patch(self, request, pk):
+        """
+        Updates einzelne Task, bei denen der User Owner oder Member des Boards ist.
+        """
+        task = get_object_or_404(Task, pk=pk)
+        self.check_object_permissions(request, task)
+        serializer = TaskUpdateSerializer(task, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
