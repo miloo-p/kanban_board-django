@@ -1,10 +1,10 @@
 # Kanban Board API
 
-REST-API für ein Kanban-Board mit Django und Django REST Framework.
+REST API for a Kanban board built with Django and Django REST Framework.
 
 ## Setup
 
-Voraussetzung: Python 3.12 oder neuer.
+Requirement: Python 3.12 or newer.
 
 ```bash
 git clone https://github.com/miloo-p/kanban_board-django.git
@@ -21,6 +21,6 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Der vorletzte Befehl erzeugt die Datei `.env` mit einem neuen `SECRET_KEY`.
+The third-to-last command creates the `.env` file with a new `SECRET_KEY`.
 
-Die API läuft unter `http://127.0.0.1:8000/api/`.
+The API runs at `http://127.0.0.1:8000/api/`.

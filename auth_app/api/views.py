@@ -8,9 +8,16 @@ from .serializers import RegistrationSerializer
 
 
 class RegistrationView(APIView):
+    """
+    View to register a new user.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Creates a new user and returns the auth token together with the user data.
+        """
         serializer = RegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -28,9 +35,16 @@ class RegistrationView(APIView):
 
 
 class CustomLoginView(ObtainAuthToken):
+    """
+    View to log in with email and password instead of username.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Logs the user in and returns the auth token together with the user data.
+        """
         login_data = {
             'username': request.data.get('email'),
             'password': request.data.get('password')

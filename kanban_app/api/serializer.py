@@ -7,6 +7,11 @@ from .querysets import tasks_with_counts
 
 
 class BoardSerializer(serializers.ModelSerializer):
+    """
+    Serializes boards for the board list and for creating a board, including the counts
+    annotated by boards_with_counts().
+    """
+
     member_count = serializers.IntegerField(read_only=True)
     ticket_count = serializers.IntegerField(read_only=True)
     tasks_to_do_count = serializers.IntegerField(read_only=True)
@@ -28,6 +33,10 @@ class BoardSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializes a user with id, email and the full name from the profile.
+    """
+
     fullname = serializers.CharField(source="profile.fullname", read_only=True)
 
     class Meta:
@@ -36,10 +45,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class EmailValidatorSerializer(serializers.Serializer):
+    """
+    Validates the email query parameter of the email check.
+    """
+
     email = serializers.EmailField()
 
 
 class TaskCurrentBoardSerializer(serializers.ModelSerializer):
+    """
+    Read-only task representation used inside the board detail, without the board field.
+    """
+
     assignee = UserSerializer(read_only=True)
     reviewer = UserSerializer(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
@@ -60,6 +77,11 @@ class TaskCurrentBoardSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(TaskCurrentBoardSerializer):
+    """
+    Serializes tasks for creating and listing; assignee and reviewer are written via
+    assignee_id/reviewer_id and returned as nested users.
+    """
+
     assignee_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="assignee",
@@ -92,6 +114,9 @@ class TaskSerializer(TaskCurrentBoardSerializer):
         ]
 
     def validate(self, data):
+        """
+        Ensures that assignee and reviewer are owner or member of the task's board.
+        """
         board = data.get("board", getattr(self.instance, "board", None))
         assignee = data.get("assignee")
         reviewer = data.get("reviewer")
@@ -112,6 +137,10 @@ class TaskSerializer(TaskCurrentBoardSerializer):
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializes a single board with its members and tasks.
+    """
+
     members = UserSerializer(many=True, read_only=True)
     tasks = serializers.SerializerMethodField()
 
@@ -120,12 +149,20 @@ class BoardDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "owner_id", "members", "tasks"]
 
     def get_tasks(self, obj):
+        """
+        Returns the board's tasks including their comment count.
+        """
         tasks = tasks_with_counts().filter(board=obj)
         serializer = TaskCurrentBoardSerializer(tasks, many=True)
         return serializer.data
 
 
 class BoardUpdateSerializer(serializers.ModelSerializer):
+    """
+    Updates title and members of a board; members are written as ids and returned
+    as nested users in members_data.
+    """
+
     owner_data = UserSerializer(source="owner", read_only=True)
     members_data = UserSerializer(source="members", many=True, read_only=True)
 
@@ -136,6 +173,10 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
 
 
 class TaskUpdateSerializer(TaskSerializer):
+    """
+    Updates a task; same validation as TaskSerializer, but the board cannot be changed.
+    """
+
     class Meta(TaskSerializer.Meta):
         model = Task
         fields = [
@@ -153,6 +194,10 @@ class TaskUpdateSerializer(TaskSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """
+    Serializes a comment with the author's full name.
+    """
+
     author = serializers.CharField(source="author.profile.fullname", read_only=True)
 
     class Meta:

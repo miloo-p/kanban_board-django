@@ -5,6 +5,10 @@ from auth_app.models import UserProfile
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    """
+    Validates registration data and creates a user with its profile.
+    """
+
     fullname = serializers.CharField(write_only=True)
     repeated_password = serializers.CharField(write_only=True)
 
@@ -17,11 +21,18 @@ class RegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate_email(self, value):
+        """
+        Rejects an email that is already used by another user.
+        """
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email already exists")
         return value
 
     def save(self):
+        """
+        Checks that both passwords match, creates the user with the email as username
+        and creates the matching UserProfile.
+        """
         pw = self.validated_data["password"]
         repeated_pw = self.validated_data["repeated_password"]
 

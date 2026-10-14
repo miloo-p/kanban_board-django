@@ -2,6 +2,10 @@ from rest_framework.permissions import BasePermission
 
 
 class IsBoardOwnerOrMember(BasePermission):
+    """
+    Allows access to a board only for its owner or its members.
+    """
+
     def has_object_permission(self, request, view, obj):
         if obj.owner == request.user:
             return True
@@ -9,6 +13,10 @@ class IsBoardOwnerOrMember(BasePermission):
 
 
 class IsBoardOwnerOrMemberOfTask(BasePermission):
+    """
+    Allows access to a task only for the owner or members of the task's board.
+    """
+
     def has_object_permission(self, request, view, obj):
         if obj.board.owner == request.user:
             return True
@@ -16,5 +24,9 @@ class IsBoardOwnerOrMemberOfTask(BasePermission):
 
 
 class IsAuthorOfComment(BasePermission):
+    """
+    Allows access to a comment only for its author.
+    """
+
     def has_object_permission(self, request, view, obj):
         return obj.author == request.user

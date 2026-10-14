@@ -1,10 +1,12 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-# Create your models here.
-
 
 class Board(models.Model):
+    """
+    Kanban board with an owner and any number of members.
+    """
+
     title = models.CharField(max_length=100)
     members = models.ManyToManyField(
         User, related_name='member_of', blank=True)
@@ -16,6 +18,10 @@ class Board(models.Model):
 
 
 class Task(models.Model):
+    """
+    Task on a board with status, priority, due date and optional assignee and reviewer.
+    """
+
     STATUS_CHOICES = [
         ('to-do', 'To do'),
         ('in-progress', 'In progress'),
@@ -50,6 +56,10 @@ class Task(models.Model):
 
 
 class Comment(models.Model):
+    """
+    Comment written by a user on a task, ordered by creation time.
+    """
+
     task = models.ForeignKey(
         Task, on_delete=models.CASCADE, related_name='comments')
     created_at = models.DateTimeField(auto_now_add=True)

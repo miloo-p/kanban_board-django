@@ -3,6 +3,10 @@ from django.db import models
 
 
 class UserProfile(models.Model):
+    """
+    Extends the Django user with a full name.
+    """
+
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='profile')
     fullname = models.CharField(max_length=150)

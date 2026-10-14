@@ -23,12 +23,12 @@ from .serializer import (
 
 class BoardView(APIView):
     """
-    View to create and list Boards
+    View to create and list boards.
     """
 
     def post(self, request):
         """
-        View for creating a Board
+        Creates a board with the requesting user as owner.
         """
         serializer = BoardSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -38,8 +38,8 @@ class BoardView(APIView):
 
     def get(self, request):
         """
-        Alle Boards, bei denen der User Owner oder Member ist.
-        Insgesamt nur eine einzige Datenbank-Query.
+        Lists all boards where the user is owner or member.
+        Uses only a single database query.
         """
         boards = (
             boards_with_counts().filter(Q(owner=request.user) | Q(members=request.user)).distinct()
@@ -49,7 +49,14 @@ class BoardView(APIView):
 
 
 class EmailCheckView(APIView):
+    """
+    View to look up a user by email.
+    """
+
     def get(self, request):
+        """
+        Returns the user with the given email or 404 if no such user exists.
+        """
         email_serializer = EmailValidatorSerializer(data=request.query_params)
         email_serializer.is_valid(raise_exception=True)
         email = email_serializer.validated_data["email"]
@@ -64,11 +71,15 @@ class EmailCheckView(APIView):
 
 
 class BoardDetailView(APIView):
+    """
+    View to retrieve, update and delete a single board.
+    """
+
     permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
     def get(self, request, pk):
         """
-        Einzelnes Board, bei denen der User Owner oder Member ist.
+        Returns a single board with members and tasks if the user is owner or member.
         """
         board = get_object_or_404(Board, pk=pk)
         self.check_object_permissions(request, board)
@@ -77,7 +88,7 @@ class BoardDetailView(APIView):
 
     def delete(self, request, pk):
         """
-        Löscht einzelnes Board, bei denen der User Owner ist.
+        Deletes a single board; only the owner is allowed to do this.
         """
         board = get_object_or_404(Board, pk=pk)
         self.check_object_permissions(request, board)
@@ -90,7 +101,7 @@ class BoardDetailView(APIView):
 
     def patch(self, request, pk):
         """
-        Updated einzelnes Board, bei denen der User Owner oder Member ist.
+        Updates title and members of a board if the user is owner or member.
         """
         board = get_object_or_404(Board, pk=pk)
         self.check_object_permissions(request, board)
@@ -101,27 +112,44 @@ class BoardDetailView(APIView):
 
 
 class AssignedToMeListView(APIView):
-    def get(self, request):
+    """
+    View to list the tasks assigned to the requesting user.
+    """
 
+    def get(self, request):
+        """
+        Returns all tasks where the user is assignee.
+        """
         tasks = tasks_with_counts().filter(assignee=request.user)
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
 
 class ReviewingListView(APIView):
-    def get(self, request):
+    """
+    View to list the tasks the requesting user has to review.
+    """
 
+    def get(self, request):
+        """
+        Returns all tasks where the user is reviewer.
+        """
         tasks = tasks_with_counts().filter(reviewer=request.user)
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
 
 class TaskView(APIView):
+    """
+    View to create tasks.
+    """
+
     permission_classes = [IsAuthenticated, IsBoardOwnerOrMember]
 
     def post(self, request):
         """
-        View for creating a Task
+        Creates a task on a board where the user is owner or member;
+        the requesting user becomes the creator.
         """
         board = get_object_or_404(Board, pk=request.data.get("board"))
         self.check_object_permissions(request, board)
@@ -133,11 +161,15 @@ class TaskView(APIView):
 
 
 class TaskDetailView(APIView):
+    """
+    View to update and delete a single task.
+    """
+
     permission_classes = [IsAuthenticated, IsBoardOwnerOrMemberOfTask]
 
     def delete(self, request, pk):
         """
-        Löscht einzelne Task, bei denen der User Owner des Boards oder Creator der Task ist.
+        Deletes a single task; only the board owner or the task creator is allowed to do this.
         """
         task = get_object_or_404(Task, pk=pk)
         self.check_object_permissions(request, task)
@@ -153,7 +185,7 @@ class TaskDetailView(APIView):
 
     def patch(self, request, pk):
         """
-        Updates einzelne Task, bei denen der User Owner oder Member des Boards ist.
+        Updates a single task if the user is owner or member of the task's board.
         """
         task = get_object_or_404(Task, pk=pk)
         self.check_object_permissions(request, task)
@@ -164,9 +196,16 @@ class TaskDetailView(APIView):
 
 
 class TaskCommentsView(APIView):
+    """
+    View to list and create comments of a task.
+    """
+
     permission_classes = [IsAuthenticated, IsBoardOwnerOrMemberOfTask]
 
     def get(self, request, task_id):
+        """
+        Returns all comments of a task if the user is owner or member of its board.
+        """
         task = get_object_or_404(Task, pk=task_id)
         self.check_object_permissions(request, task)
         comments = task.comments.all()
@@ -175,7 +214,9 @@ class TaskCommentsView(APIView):
         return Response(serializer.data)
 
     def post(self, request, task_id):
-
+        """
+        Creates a comment on a task with the requesting user as author.
+        """
         task = get_object_or_404(Task, pk=task_id)
         self.check_object_permissions(request, task)
         serializer = CommentSerializer(data=request.data)
@@ -185,9 +226,16 @@ class TaskCommentsView(APIView):
 
 
 class TaskCommentDetailView(APIView):
+    """
+    View to delete a single comment of a task.
+    """
+
     permission_classes = [IsAuthenticated, IsAuthorOfComment]
 
     def delete(self, request, task_id, comment_id):
+        """
+        Deletes a comment; only its author is allowed to do this.
+        """
         comment = get_object_or_404(Comment, task=task_id, pk=comment_id)
         self.check_object_permissions(request, comment)
         comment.delete()
