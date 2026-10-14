@@ -13,3 +13,8 @@ class IsBoardOwnerOrMemberOfTask(BasePermission):
         if obj.board.owner == request.user:
             return True
         return obj.board.members.filter(pk=request.user.pk).exists()
+
+
+class IsAuthorOfComment(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user

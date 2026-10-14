@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ..models import Board, Task
-from .permissions import IsBoardOwnerOrMember, IsBoardOwnerOrMemberOfTask
+from ..models import Board, Comment, Task
+from .permissions import IsAuthorOfComment, IsBoardOwnerOrMember, IsBoardOwnerOrMemberOfTask
 from .querysets import boards_with_counts, tasks_with_counts
 from .serializer import (
     BoardDetailSerializer,
@@ -182,3 +182,13 @@ class TaskCommentsView(APIView):
         serializer.is_valid(raise_exception=True)
         comment = serializer.save(task=task, author=request.user)
         return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+
+
+class TaskCommentDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsAuthorOfComment]
+
+    def delete(self, request, task_id, comment_id):
+        comment = get_object_or_404(Comment, task=task_id, pk=comment_id)
+        self.check_object_permissions(request, comment)
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
